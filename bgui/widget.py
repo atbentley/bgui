@@ -110,10 +110,6 @@ class ArrayAnimation(Animation):
 		super().__init__(widget, attrib, value, time_, callback)
 		self.prev_value = getattr(widget, attrib)[:]
 
-		if attrib == "position" and not (widget.options & BGUI_NO_NORMALIZE):
-			self.prev_value[0] /= widget.parent.size[0]
-			self.prev_value[1] /= widget.parent.size[1]
-
 	def update(self):
 		if (time.time() - self.start_time) * 1000 >= self.time:
 			# We're done, run the callback and
@@ -126,9 +122,6 @@ class ArrayAnimation(Animation):
 		self.last_update = time.time()
 
 		new_value = getattr(self.widget, self.attrib)[:]
-		if self.attrib == "position" and not (self.widget.options & BGUI_NO_NORMALIZE):
-			new_value[0] /= self.widget.parent.size[0]
-			new_value[1] /= self.widget.parent.size[1]
 
 		for i in range(len(self.prev_value)):
 			dv = ((self.next_value[i] - self.prev_value[i]) / self.time) * dt
@@ -202,14 +195,11 @@ class Widget:
 		self.z_index = 0
 
 		# Setup the widget's position
-		self._position = [None] * 4
-		self._update_position(size, pos)
+		self._update_position(pos[0], pos[1], size[0], size[1])
 
 		if aspect:
 			size = [self.size[1] * aspect, self.size[1]]
-			if not (self.options & BGUI_NO_NORMALIZE):
-				size = [size[0] / self.parent.size[0], size[1] / self.parent.size[1]]
-			self._update_position(size, self._base_pos)
+			self._update_position(pos[0], pos[1], size[0], size[1])
 
 		# A list of running animations
 		self.anims = []
@@ -247,43 +237,50 @@ class Widget:
 			elif not hasattr(self, "theme"):
 				self.theme = self.theme_options
 
-	def _update_position(self, size=None, pos=None):
-		if size is not None:
-			size = list(size)
-			self._base_size = size[:]
+	def _update_position(self, x=None, y=None, width=None, height=None):
+		if x is not None:
+			self._x = x
+			if not (self.options & BGUI_NO_NORMALIZE):
+				x *= self.parent._base_width
 		else:
-			size = self._base_size[:]
-		if pos is not None:
-			pos = list(pos)
-			self._base_pos = pos[:]
+			x = self._base_x
+
+		if y is not None:
+			self._y = y
+			if not (self.options & BGUI_NO_NORMALIZE):
+				y *= self.parent._base_height
 		else:
-			pos = self._base_pos[:]
+			y = self._base_y
 
-		if not (self.options & BGUI_NO_NORMALIZE):
-			pos[0] *= self.parent.size[0]
-			pos[1] *= self.parent.size[1]
+		if width is not None:
+			self._width = width
+			if not (self.options & BGUI_NO_NORMALIZE):
+				width *= self.parent._base_width
+		else:
+			width = self._base_width
 
-			size[0] *= self.parent.size[0]
-			size[1] *= self.parent.size[1]
+		if height is not None:
+			self._height = height
+			if not (self.options & BGUI_NO_NORMALIZE):
+				height *= self.parent._base_height
+		else:
+			height = self._base_height
 
 		if self.options & BGUI_CENTERX:
-			pos[0] = self.parent.size[0] / 2 - size[0] / 2
+			x = self.parent._base_width / 2 - width / 2
 
 		if self.options & BGUI_CENTERY:
-			pos[1] = self.parent.size[1] / 2 - size[1] / 2
+			y = self.parent._base_height / 2 - height / 2
 
 		if self.parent != self:
-			x = pos[0] + self.parent.position[0]
-			y = pos[1] + self.parent.position[1]
-		else:  # A widget should only be its own parent if it's the system...
-			x = pos[0]
-			y = pos[1]
+			# Make position absolute
+			x += self.parent._base_x
+			y += self.parent._base_y
 
-		width = size[0]
-		height = size[1]
-		self._size = [width, height]
-		# The "private" position returned by setter
-		self._position = [x, y]
+		self._base_x = x
+		self._base_y = y
+		self._base_width = width
+		self._base_height = height
 
 		# OpenGL starts at the bottom left and goes counter clockwise
 		self.gl_position = [
@@ -295,7 +292,7 @@ class Widget:
 
 		# Update any children
 		for widget in self.children.values():
-			widget._update_position(widget._base_size, widget._base_pos)
+			widget._update_position(widget._x, widget._y, widget._width, widget._height)
 
 	@property
 	def on_click(self):
@@ -372,22 +369,58 @@ class Widget:
 		return self._children
 
 	@property
+	def x(self):
+		"""The widget's x position"""
+		return self._x
+
+	@x.setter
+	def x(self, value):
+		self._update_position(x=value)
+
+	@property
+	def y(self):
+		"""The widget's y position"""
+		return self._y
+
+	@y.setter
+	def y(self, value):
+		self._update_position(y=value)
+
+	@property
 	def position(self):
 		"""The widget's position"""
-		return self._position
+		return [self._x, self._y]
 
 	@position.setter
 	def position(self, value):
-		self._update_position(self._base_size, value)
+		self._update_position(x=value[0], y=value[1])
+
+	@property
+	def width(self):
+		"""The widget's width"""
+		return self._width
+
+	@width.setter
+	def width(self, value):
+		self._update_position(width=value)
+
+	@property
+	def height(self):
+		"""The widget's height"""
+		return self._height
+		
+	@height.setter
+	def height(self, value):
+		self._update_position(height=value)
 
 	@property
 	def size(self):
 		"""The widget's size"""
-		return self._size
+		return [self._width, self._height]
 
 	@size.setter
 	def size(self, value):
-		self._update_position(value, self._base_pos)
+		self._update_position(width=value[0], height=value[1])
 
 	def move(self, position, time, callback=None):
 		"""Move a widget to a new position over a number of frames

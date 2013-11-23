@@ -103,8 +103,8 @@ class TextInput(Widget):
 		#gauge height of the drawn font
 		fd = blf.dimensions(self.label.fontid, "Egj/}|^,")
 
-		py = .5 - (fd[1] / self.size[1] / 2)
-		px = fd[1] / self.size[0] - fd[1] / 1.5 / self.size[0]
+		py = .5 - (fd[1] / self._base_height / 2)
+		px = fd[1] / self._base_width - fd[1] / 1.5 / self._base_width
 		self.label.position = [px, py]
 		self.fd = blf.dimensions(self.label.fontid, self.text_prefix)[0] + fd[1] / 3.2
 
@@ -218,12 +218,12 @@ class TextInput(Widget):
 		left = self.fd + blf.dimensions(self.label.fontid, self.text[:self.slice[0]])[0]
 		right = self.fd + blf.dimensions(self.label.fontid, self.text[:self.slice[1]])[0]
 		self.highlight.position = [left, 1]
-		self.highlight.size = [right - left, self.frame.size[1] * .8]
+		self.highlight.size = [right - left, 0.8]
 		if self.slice_direction in [0, -1]:
 			self.cursor.position = [left, 1]
 		else:
 			self.cursor.position = [right, 1]
-		self.cursor.size = [2, self.frame.size[1] * .8]
+		self.cursor.size = [0.02, 0.8]
 
 	def find_mouse_slice(self, pos):
 		cmc = self.calc_mouse_cursor(pos)
@@ -242,7 +242,7 @@ class TextInput(Widget):
 		self.selection_refresh = 1
 
 	def calc_mouse_cursor(self, pos):
-		adj_pos = pos[0] - (self.position[0] + self.fd)
+		adj_pos = pos[0] - (self._base_x + self.fd)
 		find_slice = 0
 		i = 0
 		for entry in self.char_widths:

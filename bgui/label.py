@@ -76,10 +76,10 @@ class Label(Widget):
 		size = [blf.dimensions(self.fontid, value)[0], blf.dimensions(self.fontid, 'Mj')[0]]
 
 		if not (self.options & BGUI_NO_NORMALIZE):
-			size[0] /= self.parent.size[0]
-			size[1] /= self.parent.size[1]
+			size[0] /= self.parent._base_width
+			size[1] /= self.parent._base_height
 
-		self._update_position(size, self._base_pos)
+		self._update_position(x=self.x, y=self.y, width=size[0], height=size[1])
 
 		self._text = value
 
@@ -98,7 +98,7 @@ class Label(Widget):
 
 	def _draw_text(self, x, y):
 		for i, txt in enumerate([i for i in self._text.split('\n')]):
-			blf.position(self.fontid, x, y - (self.size[1] * i), 0)
+			blf.position(self.fontid, x, y - (self._base_height * i), 0)
 			blf.draw(self.fontid, txt.replace('\t', '    '))
 
 	def _draw(self):
@@ -115,10 +115,10 @@ class Label(Widget):
 
 			for x in steps:
 				for y in steps:
-					self._draw_text(self.position[0] + x, self.position[1] + y)
+					self._draw_text(self._base_x + x, self._base_y + y)
 
 		glColor4f(*self.color)
-		self._draw_text(*self.position)
+		self._draw_text(self._base_x, self._base_y)
 
 		Widget._draw(self)
 
