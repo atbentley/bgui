@@ -195,11 +195,20 @@ class Widget:
 		self.z_index = 0
 
 		# Setup the widget's position
-		self._update_position(pos[0], pos[1], size[0], size[1])
-
 		if aspect:
-			size = [self.size[1] * aspect, self.size[1]]
-			self._update_position(pos[0], pos[1], size[0], size[1])
+			size[0] = size[1] * aspect
+
+		self._width = size[0]
+		self._height = size[1]
+		if options & BGUI_NO_NORMALIZE:
+			self._base_width = size[0]
+			self._base_height = size[1]
+		else:
+			self._base_width = size[0] * self.parent._base_width
+			self._base_height = size[1] * self.parent._base_height
+
+		self.x = pos[0]
+		self.y = pos[1]
 
 		# A list of running animations
 		self.anims = []
@@ -236,63 +245,6 @@ class Widget:
 						self.theme[k] = v
 			elif not hasattr(self, "theme"):
 				self.theme = self.theme_options
-
-	def _update_position(self, x=None, y=None, width=None, height=None):
-		if x is not None:
-			self._x = x
-			if not (self.options & BGUI_NO_NORMALIZE):
-				x *= self.parent._base_width
-		else:
-			x = self._base_x
-
-		if y is not None:
-			self._y = y
-			if not (self.options & BGUI_NO_NORMALIZE):
-				y *= self.parent._base_height
-		else:
-			y = self._base_y
-
-		if width is not None:
-			self._width = width
-			if not (self.options & BGUI_NO_NORMALIZE):
-				width *= self.parent._base_width
-		else:
-			width = self._base_width
-
-		if height is not None:
-			self._height = height
-			if not (self.options & BGUI_NO_NORMALIZE):
-				height *= self.parent._base_height
-		else:
-			height = self._base_height
-
-		if self.options & BGUI_CENTERX:
-			x = self.parent._base_width / 2 - width / 2
-
-		if self.options & BGUI_CENTERY:
-			y = self.parent._base_height / 2 - height / 2
-
-		if self.parent != self:
-			# Make position absolute
-			x += self.parent._base_x
-			y += self.parent._base_y
-
-		self._base_x = x
-		self._base_y = y
-		self._base_width = width
-		self._base_height = height
-
-		# OpenGL starts at the bottom left and goes counter clockwise
-		self.gl_position = [
-					[x, y],
-					[x + width, y],
-					[x + width, y + height],
-					[x, y + height]
-				]
-
-		# Update any children
-		for widget in self.children.values():
-			widget._update_position(widget._x, widget._y, widget._width, widget._height)
 
 	@property
 	def on_click(self):
@@ -374,8 +326,25 @@ class Widget:
 		return self._x
 
 	@x.setter
-	def x(self, value):
-		self._update_position(x=value)
+	def x(self, x):
+		self._x = x
+		# Make non-normalized
+		if not (self.options & BGUI_NO_NORMALIZE):
+			x *= self.parent._base_width
+
+		# Make centered
+		if self.options & BGUI_CENTERX:
+			x = self.parent._base_width / 2 - self._base_width / 2
+
+		# Make absolute
+		if self.parent != self:
+			x += self.parent._base_x
+
+		self._base_x = x
+
+		# Update any children
+		for widget in self.children.values():
+			widget.x = widget._x
 
 	@property
 	def y(self):
@@ -383,8 +352,25 @@ class Widget:
 		return self._y
 
 	@y.setter
-	def y(self, value):
-		self._update_position(y=value)
+	def y(self, y):
+		self._y = y
+		# Make non-normalized
+		if not (self.options & BGUI_NO_NORMALIZE):
+			y *= self.parent._base_height
+
+		# Make centered
+		if self.options & BGUI_CENTERY:
+			y = self.parent._base_height / 2 - self._base_height / 2
+
+		# Make absolute
+		if self.parent != self:
+			y += self.parent._base_y
+
+		self._base_y = y
+
+		# Update any children
+		for widget in self.children.values():
+			widget.y = widget._y
 
 	@property
 	def position(self):
@@ -393,7 +379,8 @@ class Widget:
 
 	@position.setter
 	def position(self, value):
-		self._update_position(x=value[0], y=value[1])
+		self.x = value[0]
+		self.y = value[1]
 
 	@property
 	def width(self):
@@ -401,8 +388,20 @@ class Widget:
 		return self._width
 
 	@width.setter
-	def width(self, value):
-		self._update_position(width=value)
+	def width(self, width):
+		self._width = width
+		# Make non-normalized
+		if not (self.options & BGUI_NO_NORMALIZE):
+			width *= self.parent._base_width
+
+		self._base_width = width
+
+		# Re-center the x position
+		if self.options & BGUI_CENTERX:
+			self.x = self._x
+
+		for widget in self.children.values():
+			widget.width = widget._width
 
 	@property
 	def height(self):
@@ -410,8 +409,20 @@ class Widget:
 		return self._height
 		
 	@height.setter
-	def height(self, value):
-		self._update_position(height=value)
+	def height(self, height):
+		self._height = height
+		# Make non-normalized
+		if not (self.options & BGUI_NO_NORMALIZE):
+			height *= self.parent._base_height
+
+		self._base_height = height
+
+		# Re-center the y position
+		if self.options & BGUI_CENTERY:
+			self.y = self._y
+
+		for widget in self.children.values():
+			widget.height = widget._height
 
 	@property
 	def size(self):
@@ -420,7 +431,18 @@ class Widget:
 
 	@size.setter
 	def size(self, value):
-		self._update_position(width=value[0], height=value[1])
+		self.width = value[0]
+		self.height = value[1]
+
+	@property
+	def gl_position(self):
+	    return [
+					[self._base_x, self._base_y],
+					[self._base_x + self._base_width, self._base_y],
+					[self._base_x + self._base_width, self._base_y + self._base_height],
+					[self._base_x, self._base_y + self._base_height]
+				]
+	
 
 	def move(self, position, time, callback=None):
 		"""Move a widget to a new position over a number of frames

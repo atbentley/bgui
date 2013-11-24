@@ -73,13 +73,14 @@ class Label(Widget):
 	@text.setter
 	def text(self, value):
 		blf.size(self.fontid, self.pt_size, 72)
-		size = [blf.dimensions(self.fontid, value)[0], blf.dimensions(self.fontid, 'Mj')[0]]
+		size = [blf.dimensions(self.fontid, value)[0], blf.dimensions(self.fontid, value)[1]]
 
 		if not (self.options & BGUI_NO_NORMALIZE):
 			size[0] /= self.parent._base_width
 			size[1] /= self.parent._base_height
 
-		self._update_position(x=self.x, y=self.y, width=size[0], height=size[1])
+		self.width=size[0]
+		self.height=size[1]
 
 		self._text = value
 
