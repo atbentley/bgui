@@ -194,17 +194,20 @@ class Widget:
 		#: over those that have a lower z-index
 		self.z_index = 0
 
-		# Setup the widget's position
-		if aspect:
-			size[0] = size[1] * aspect
-
+		# Setup the widget's size and position
 		self._width = size[0]
 		self._height = size[1]
 		if options & BGUI_NO_NORMALIZE:
-			self._base_width = size[0]
+			if aspect:
+				self._base_width = size[1] * aspect
+			else:
+				self._base_width = size[0]
 			self._base_height = size[1]
 		else:
-			self._base_width = size[0] * self.parent._base_width
+			if aspect:
+				self._base_width = size[1] * aspect * self.parent._base_height
+			else:
+				self._base_width = size[0] * self.parent._base_width
 			self._base_height = size[1] * self.parent._base_height
 
 		self.x = pos[0]
