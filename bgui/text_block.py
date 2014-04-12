@@ -64,9 +64,9 @@ class TextBlock(Widget):
 		cur_line = 0
 		line = Label(self, "tmp", "Mj|", font=self._font, pt_size=self._pt_size, color=self._color, sub_theme=self.theme['LabelSubTheme'])
 		self._remove_widget(line)
-		char_height = line.size[1]
+		char_height = line._base_height / self._base_height
 
-		char_height /= self.size[1]
+		#char_height /= self.size[1]
 
 		for words in lines:
 			line = Label(self, "lines_" + str(cur_line), "", self._font, self._pt_size, self._color, pos=[0, 1 - (cur_line + 1) * char_height], sub_theme=self.theme['LabelSubTheme'])
@@ -79,7 +79,7 @@ class TextBlock(Widget):
 					line.text = words[0]
 
 				# The line is too big, remove the word and create a new line
-				if line.size[0] > self.size[0]:
+				if line._base_width > self._base_width:
 					line.text = line.text[0:-(len(words[0]) + 1)]
 					self._lines.append(line)
 					cur_line += 1
@@ -93,9 +93,9 @@ class TextBlock(Widget):
 			cur_line += 1
 
 		if self.overflow:
-			line_height = char_height * self.size[1]
+			#line_height = char_height * self.size[1]
 
-			while self.size[1] < len(self._lines) * line_height:
+			while self._base_height < len(self._lines) * char_height:
 				if self.overflow == BGUI_OVERFLOW_HIDDEN:
 					self._remove_widget(self._lines[-1])
 					self._lines = self._lines[:-1]
@@ -104,6 +104,7 @@ class TextBlock(Widget):
 					self._remove_widget(self._lines[0])
 					self._lines = self._lines[1:]
 					for line in self._lines:
+						continue
 						line._update_position(line.size, [0, line._base_pos[1] + char_height])
 
 				elif self.overflow == BGUI_OVERFLOW_CALLBACK:
