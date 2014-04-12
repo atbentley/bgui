@@ -66,8 +66,6 @@ class TextBlock(Widget):
 		self._remove_widget(line)
 		char_height = line._base_height / self._base_height
 
-		#char_height /= self.size[1]
-
 		for words in lines:
 			line = Label(self, "lines_" + str(cur_line), "", self._font, self._pt_size, self._color, pos=[0, 1 - (cur_line + 1) * char_height], sub_theme=self.theme['LabelSubTheme'])
 
