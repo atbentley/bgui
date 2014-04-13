@@ -54,6 +54,7 @@ class System(Widget):
 		"""
 
 		self.cursor_pos = pos
+		self.click_state = click_state
 
 		Widget._handle_mouse(self, pos, click_state)
 
