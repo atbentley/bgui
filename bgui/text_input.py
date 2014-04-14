@@ -10,12 +10,12 @@ This module defines the following constants:
 """
 
 from .widget import Widget, WeakMethod, BGUI_DEFAULT, BGUI_CENTERY, \
-	BGUI_NO_FOCUS, BGUI_MOUSE_ACTIVE, BGUI_MOUSE_CLICK, BGUI_MOUSE_RELEASE
+	BGUI_NO_FOCUS, BGUI_MOUSE_ACTIVE, BGUI_MOUSE_CLICK, BGUI_MOUSE_RELEASE, \
+	BGUI_NO_NORMALIZE
 from .key_defs import *
 from .label import Label
 from .frame import Frame
 
-from . import fonts as blf
 import time
 
 # InputText options
@@ -69,8 +69,8 @@ class TextInput(Widget):
 
 		#create widgets
 		self.frame = Frame(self, size=[1, 1], options=BGUI_NO_FOCUS | BGUI_DEFAULT | BGUI_CENTERY)
-		self.highlight = Frame(self, size=self.frame.size, options=BGUI_NO_FOCUS | BGUI_CENTERY)
-		self.cursor = Frame(self, size=[1, 1], border=0, options=BGUI_NO_FOCUS | BGUI_CENTERY)
+		self.highlight = Frame(self, size=self.frame.size, border=0, options=BGUI_NO_FOCUS | BGUI_CENTERY | BGUI_NO_NORMALIZE)
+		self.cursor = Frame(self, size=[1, 1], border=0, options=BGUI_NO_FOCUS | BGUI_CENTERY | BGUI_NO_NORMALIZE)
 		self.label = Label(self, text=text, font=font, pt_size=pt_size, sub_theme=self.theme['LabelSubTheme'], options=BGUI_NO_FOCUS | BGUI_DEFAULT)
 
 		#Color and setting initialization
@@ -101,12 +101,12 @@ class TextInput(Widget):
 		self.swapcolors(0)
 
 		#gauge height of the drawn font
-		fd = blf.dimensions(self.label.fontid, "Egj/}|^,")
+		fd = self.system.textlib.dimensions(self.label.fontid, "Egj/}|^,")
 
 		py = .5 - (fd[1] / self._base_height / 2)
 		px = fd[1] / self._base_width - fd[1] / 1.5 / self._base_width
 		self.label.position = [px, py]
-		self.fd = blf.dimensions(self.label.fontid, self.text_prefix)[0] + fd[1] / 3.2
+		self.fd = self.system.textlib.dimensions(self.label.fontid, self.text_prefix)[0] + fd[1] / 3.2
 
 		self.frame.size = [1, 1]
 		self.frame.position = [0, 0]
@@ -152,7 +152,7 @@ class TextInput(Widget):
 
 	@prefix.setter
 	def prefix(self, value):
-		self.fd = blf.dimensions(self.label.fontid, value)[0] + fd[1] / 3.2
+		self.fd = self.system.textlib.dimensions(self.label.fontid, value)[0] + fd[1] / 3.2
 		self.text_prefix = value
 
 	@property
@@ -168,7 +168,7 @@ class TextInput(Widget):
 	def _update_char_widths(self):
 		self.char_widths = []
 		for char in self.text:
-			self.char_widths.append(blf.dimensions(self.label.fontid, char * 20)[0] / 20)
+			self.char_widths.append(self.system.textlib.dimensions(self.label.fontid, char * 20)[0] / 20)
 
 	def select_all(self):
 		"""Change the selection to include all of the text"""
@@ -215,10 +215,10 @@ class TextInput(Widget):
 
 	#Selection Code
 	def update_selection(self):
-		left = self.fd + blf.dimensions(self.label.fontid, self.text[:self.slice[0]])[0]
-		right = self.fd + blf.dimensions(self.label.fontid, self.text[:self.slice[1]])[0]
+		left = self.fd + self.system.textlib.dimensions(self.label.fontid, self.text[:self.slice[0]])[0]
+		right = self.fd + self.system.textlib.dimensions(self.label.fontid, self.text[:self.slice[1]])[0]
 		self.highlight.position = [left, 1]
-		self.highlight.size = [right - left, 0.8]
+		self.highlight.size = [right - left, self.frame._base_height * 0.8]
 		if self.slice_direction in [0, -1]:
 			self.cursor.position = [left, 1]
 		else:
@@ -465,7 +465,7 @@ class TextInput(Widget):
 				#need copy place somewhere
 
 				self.label.text = self.text[:self.slice[0]] + char + self.text[self.slice[1]:]
-				self.char_widths = self.char_widths[:self.slice[0]] + [blf.dimensions(self.label.fontid, char * 20)[0] / 20] + self.char_widths[self.slice[1]:]
+				self.char_widths = self.char_widths[:self.slice[0]] + [self.system.textlib.dimensions(self.label.fontid, char * 20)[0] / 20] + self.char_widths[self.slice[1]:]
 				self.slice = [self.slice[0] + 1, self.slice[0] + 1]
 				self.slice_direction = 0
 
