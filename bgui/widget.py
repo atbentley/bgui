@@ -335,6 +335,10 @@ class Widget:
 		if not (self.options & BGUI_NO_NORMALIZE):
 			x *= self.parent._base_width
 
+		# Make centered
+		if self.options & BGUI_CENTERX:
+			x = self.parent._base_width / 2 - self._base_width / 2
+
 		# Make absolute
 		if self.parent != self:
 			x += self.parent._base_x
@@ -356,6 +360,10 @@ class Widget:
 		# Make non-normalized
 		if not (self.options & BGUI_NO_NORMALIZE):
 			y *= self.parent._base_height
+
+		# Make centered
+		if self.options & BGUI_CENTERY:
+			y = self.parent._base_height / 2 - self._base_height / 2
 
 		# Make absolute
 		if self.parent != self:
@@ -391,6 +399,10 @@ class Widget:
 
 		self._base_width = width
 
+		# Re-center the x position
+		if self.options & BGUI_CENTERX:
+			self.x = self._x
+
 		for widget in self.children.values():
 			widget.width = widget._width
 
@@ -407,6 +419,10 @@ class Widget:
 			height *= self.parent._base_height
 
 		self._base_height = height
+
+		# Re-center the y position
+		if self.options & BGUI_CENTERY:
+			self.y = self._y
 
 		for widget in self.children.values():
 			widget.height = widget._height
