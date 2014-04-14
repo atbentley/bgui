@@ -61,7 +61,7 @@ class Frame(Widget):
 		glBegin(GL_QUADS)
 		for i in range(4):
 			glColor4f(self.colors[i][0], self.colors[i][1], self.colors[i][2], self.colors[i][3])
-			glVertex2f(self.gl_position[i][0], self.gl_position[i][1])
+			glVertex2f(self._gl_position[i][0], self._gl_position[i][1])
 		glEnd()
 
 		glDisable(GL_POLYGON_OFFSET_FILL)
@@ -76,7 +76,7 @@ class Frame(Widget):
 
 			glBegin(GL_QUADS)
 			for i in range(4):
-				glVertex2f(self.gl_position[i][0], self.gl_position[i][1])
+				glVertex2f(self._gl_position[i][0], self._gl_position[i][1])
 
 			glEnd()
 

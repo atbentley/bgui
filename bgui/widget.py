@@ -438,7 +438,7 @@ class Widget:
 		self.height = value[1]
 
 	@property
-	def gl_position(self):
+	def _gl_position(self):
 	    return [
 					[self._base_x, self._base_y],
 					[self._base_x + self._base_width, self._base_y],
@@ -505,8 +505,8 @@ class Widget:
 
 		# Run any children callback methods
 		for widget in self.children.values():
-			if (widget.gl_position[0][0] <= pos[0] <= widget.gl_position[1][0]) and \
-				(widget.gl_position[0][1] <= pos[1] <= widget.gl_position[2][1]):
+			if (widget._gl_position[0][0] <= pos[0] <= widget._gl_position[1][0]) and \
+				(widget._gl_position[0][1] <= pos[1] <= widget._gl_position[2][1]):
 					widget._handle_mouse(pos, event)
 			else:
 				widget._update_hover(False)

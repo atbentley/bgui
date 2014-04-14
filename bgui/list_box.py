@@ -115,7 +115,7 @@ class ListBox(Widget):
 			w._draw()
 
 			if self.selected == item:
-				self.highlight.gl_position = [i[:] for i in w.gl_position]
+				#self.highlight.gl_position = [i[:] for i in w.gl_position]  # TODO not modify gl_position
 				self.highlight.visible = True
 
 	def _handle_mouse(self, pos, event):

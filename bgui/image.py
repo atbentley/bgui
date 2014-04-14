@@ -89,7 +89,7 @@ class Image(Widget):
 		glBegin(GL_QUADS)
 		for i in range(4):
 			glTexCoord2f(self.texco[i][0], self.texco[i][1])
-			glVertex2f(self.gl_position[i][0], self.gl_position[i][1])
+			glVertex2f(self._gl_position[i][0], self._gl_position[i][1])
 		glEnd()
 
 		glBindTexture(GL_TEXTURE_2D, 0)
