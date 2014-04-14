@@ -78,8 +78,8 @@ class Label(Widget):
 			size[0] /= self.parent._base_width
 			size[1] /= self.parent._base_height
 
-		self.width=size[0]
-		self.height=size[1]
+		self.width = size[0]
+		self.height = size[1]
 
 		self._text = value
 

@@ -91,9 +91,9 @@ class TextBlock(Widget):
 			cur_line += 1
 
 		if self.overflow:
-			#line_height = char_height * self.size[1]
+			line_height = char_height * self._base_height
 
-			while self._base_height < len(self._lines) * char_height:
+			while self._base_height < len(self._lines) * line_height:
 				if self.overflow == BGUI_OVERFLOW_HIDDEN:
 					self._remove_widget(self._lines[-1])
 					self._lines = self._lines[:-1]
@@ -102,8 +102,7 @@ class TextBlock(Widget):
 					self._remove_widget(self._lines[0])
 					self._lines = self._lines[1:]
 					for line in self._lines:
-						continue
-						line._update_position(line.size, [0, line._base_pos[1] + char_height])
+						line.y += char_height
 
 				elif self.overflow == BGUI_OVERFLOW_CALLBACK:
 					if self.on_overflow:
